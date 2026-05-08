@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wuyou.onlytest.mapper.demo.OrderMapper">
+
+    <resultMap id="orderWithItemsMap" type="com.wuyou.onlytest.entity.demo.Order">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="user_id" property="userId"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <collection property="items" ofType="com.wuyou.onlytest.entity.demo.OrderItem">
+            <id column="item_id" property="id"/>
+            <result column="product_name" property="productName"/>
+            <result column="quantity" property="quantity"/>
+            <result column="price" property="price"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectOrderWithItems" resultMap="orderWithItemsMap">
+        SELECT
+            o.*,
+            oi.id AS item_id,
+            oi.product_name,
+            oi.quantity,
+            oi.price
+        FROM demo_order o
+        LEFT JOIN demo_order_item oi ON oi.order_id = o.id
+        WHERE o.id = #{orderId}
+        ORDER BY oi.id
+    </select>
+</mapper>
