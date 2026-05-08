@@ -51,6 +51,12 @@ public class ProductService {
         return product;
     }
 
+    public boolean updateById(Product product) {
+        int rows = productMapper.updateById(product);
+        log.info("product {} updated: {}", product.getId(), rows > 0);
+        return rows > 0;
+    }
+
     @CacheEvict(value = "product", key = "#id")
     public void evictCache(Long id) {
         log.info("cache evicted: product:{}", id);

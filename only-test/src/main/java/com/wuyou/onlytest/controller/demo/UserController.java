@@ -3,6 +3,7 @@ package com.wuyou.onlytest.controller.demo;
 import com.wuyou.common.page.PageResult;
 import com.wuyou.common.result.Result;
 import com.wuyou.onlytest.entity.demo.User;
+import java.util.List;
 import com.wuyou.onlytest.dto.demo.UserDTO;
 import com.wuyou.onlytest.service.demo.UserService;
 import org.springframework.beans.BeanUtils;
@@ -52,6 +53,23 @@ public class UserController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         userService.removeById(id);
+        return Result.success(null);
+    }
+
+    /** 查询包含已逻辑删除的记录 */
+    @GetMapping("/deleted-list")
+    public Result<List<User>> listDeleted() {
+        return Result.success(userService.list());
+    }
+
+    /** 恢复已删除的用户 */
+    @PostMapping("/{id}/restore")
+    public Result<Void> restore(@PathVariable Long id) {
+        User user = userService.getById(id);
+        if (user != null) {
+            user.setDeleted(0);
+            userService.updateById(user);
+        }
         return Result.success(null);
     }
 }
