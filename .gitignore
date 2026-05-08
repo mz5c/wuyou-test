@@ -40,3 +40,6 @@ build/
 
 ### Application ###
 application-prod.yml
+
+### Docs ###
+docs/
