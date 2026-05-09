@@ -8,8 +8,14 @@ import com.wuyou.onlytest.entity.demo.User;
 import com.wuyou.onlytest.mapper.demo.UserMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService extends ServiceImpl<UserMapper, User> {
+
+    public List<User> listAllIncludeDeleted() {
+        return baseMapper.selectAllIncludeDeleted();
+    }
 
     public PageResult<User> pageUsers(int page, int size, String keyword) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
