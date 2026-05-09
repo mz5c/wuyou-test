@@ -1,5 +1,7 @@
 package com.wuyou.llmutils.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wuyou.llmutils.model.ChatMessage;
 import com.wuyou.llmutils.model.ChatRequest;
 import com.wuyou.llmutils.model.ChatResponse;
@@ -23,6 +25,7 @@ public class LlmClient {
 
     private final RestTemplate restTemplate;
     private final LlmProperties properties;
+    private final ObjectMapper objectMapper;
 
     public LlmClient(LlmProperties properties, RestTemplateBuilder builder) {
         this.properties = properties;
@@ -30,21 +33,29 @@ public class LlmClient {
                 .setConnectTimeout(Duration.ofMillis(properties.getTimeout()))
                 .setReadTimeout(Duration.ofMillis(properties.getTimeout()))
                 .build();
+        this.objectMapper = new ObjectMapper();
     }
 
     /** 同步调用 */
     public ChatResponse chat(ChatRequest request) {
         request.setStream(false);
+        if (null == request.getModel() || request.getModel().isBlank()) {
+            request.setModel(properties.getModel());
+        }
         HttpEntity<ChatRequest> entity = buildEntity(request);
+        long start = System.currentTimeMillis();
+        log.info("LLM request URL={}, model={}", properties.getFullUrl(), request.getModel());
         try {
             ResponseEntity<ChatResponse> response = restTemplate.exchange(
-                    properties.getBaseUrl() + "/v1/chat/completions",
+                    properties.getFullUrl(),
                     HttpMethod.POST,
                     entity,
                     ChatResponse.class);
+            log.info("LLM response success, cost={}ms", System.currentTimeMillis() - start);
             return response.getBody();
         } catch (Exception e) {
-            log.error("LLM sync call failed", e);
+            log.error("LLM request failed, cost={}ms, URL={}, model={}",
+                    System.currentTimeMillis() - start, properties.getFullUrl(), request.getModel(), e);
             throw new RuntimeException("LLM call failed: " + e.getMessage(), e);
         }
     }
@@ -52,10 +63,15 @@ public class LlmClient {
     /** 流式调用 */
     public void chatStream(ChatRequest request, StreamCallback callback) {
         request.setStream(true);
+        if (null == request.getModel() || request.getModel().isBlank()) {
+            request.setModel(properties.getModel());
+        }
         HttpEntity<ChatRequest> entity = buildEntity(request);
+        long start = System.currentTimeMillis();
+        log.info("LLM stream request URL={}, model={}", properties.getFullUrl(), request.getModel());
         try {
             ResponseEntity<Resource> response = restTemplate.exchange(
-                    properties.getBaseUrl() + "/v1/chat/completions",
+                    properties.getFullUrl(),
                     HttpMethod.POST,
                     entity,
                     Resource.class);
@@ -73,28 +89,34 @@ public class LlmClient {
                 StringBuilder contentBuilder = new StringBuilder();
                 while ((line = reader.readLine()) != null) {
                     if (line.startsWith("data: ")) {
-                        String data = line.substring(6);
+                        String data = line.substring(6).trim();
                         if ("[DONE]".equals(data)) {
                             break;
                         }
-                        if (data.contains("\"delta\"") && data.contains("\"content\"")) {
-                            int idx = data.indexOf("\"content\":\"") + 11;
-                            if (idx > 10) {
-                                int end = data.indexOf("\"", idx);
-                                if (end > idx) {
-                                    String token = data.substring(idx, end);
+                        try {
+                            JsonNode root = objectMapper.readTree(data);
+                            JsonNode choices = root.get("choices");
+                            if (choices != null && choices.isArray() && choices.size() > 0) {
+                                JsonNode delta = choices.get(0).get("delta");
+                                if (delta != null && delta.has("content")) {
+                                    String token = delta.get("content").asText();
                                     callback.onToken(token);
                                     contentBuilder.append(token);
                                 }
                             }
+                        } catch (Exception e) {
+                            log.warn("Failed to parse SSE data line: {}", data, e);
                         }
                     }
                 }
                 fullResponse.getChoices().get(0).getMessage().setContent(contentBuilder.toString());
+                log.info("LLM stream completed, cost={}ms, tokens={}",
+                        System.currentTimeMillis() - start, contentBuilder.length());
                 callback.onComplete(fullResponse);
             }
         } catch (Exception e) {
-            log.error("LLM stream call failed", e);
+            log.error("LLM stream failed, cost={}ms, URL={}, model={}",
+                    System.currentTimeMillis() - start, properties.getFullUrl(), request.getModel(), e);
             callback.onError(e);
         }
     }

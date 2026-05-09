@@ -307,9 +307,77 @@ curl -X POST "http://localhost:8080/api/v1/async/notification?userId=1&message=h
 
 ---
 
+## LLM 聊天接口 (LLM Chat API)
+
+### 16. 非流式聊天
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/llm/chat" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "你好，请用中文回答"
+  }'
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": "你好！有什么可以帮助你的吗？",
+  "success": true
+}
+```
+
+**指定模型**:
+```bash
+curl -X POST "http://localhost:8080/api/v1/llm/chat" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "讲个笑话",
+    "model": "gpt-4o"
+  }'
+```
+
+---
+
+### 17. 流式聊天 (SSE)
+
+```bash
+curl -N -X POST "http://localhost:8080/api/v1/llm/chat/stream" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "请用中文介绍你自己"
+  }'
+```
+
+**SSE 事件流示例**:
+```
+event: token
+data: 你好
+
+event: token
+data: ！我
+
+event: token
+data: 是
+
+event: token
+data: 一个
+
+...
+
+event: done
+data: [DONE]
+```
+
+**说明**: 流式接口使用 SSE (Server-Sent Events) 协议，逐个 token 返回 `event: token` 事件，全部完成后发送 `event: done` 事件。`-N` 参数禁用 curl 的缓冲，确保实时输出。
+
+---
+
 ## 文件上传接口 (File Upload API)
 
-### 16. 上传文件
+### 18. 上传文件
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/files/upload" \
@@ -343,7 +411,7 @@ curl -X POST "http://localhost:8080/api/v1/files/upload" \
 
 ## 数据验证接口 (Validation API)
 
-### 17. 验证用户数据（有效数据）
+### 19. 验证用户数据（有效数据）
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/validation/user" \
@@ -367,7 +435,7 @@ curl -X POST "http://localhost:8080/api/v1/validation/user" \
 
 ---
 
-### 18. 验证用户数据（无效用户名）
+### 20. 验证用户数据（无效用户名）
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/validation/user" \
@@ -390,7 +458,7 @@ curl -X POST "http://localhost:8080/api/v1/validation/user" \
 
 ---
 
-### 19. 验证用户数据（无效手机号）
+### 21. 验证用户数据（无效手机号）
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/validation/user" \
@@ -413,7 +481,7 @@ curl -X POST "http://localhost:8080/api/v1/validation/user" \
 
 ---
 
-### 20. 验证用户数据（无效邮箱）
+### 22. 验证用户数据（无效邮箱）
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/validation/user" \

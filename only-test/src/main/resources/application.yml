@@ -34,6 +34,12 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+llm:
+  api:
+    api-key: ${WY_LLM_API_KEY}
+    model: ${WY_LLM_API_MODEL}
+    full-url: ${WY_LLM_API_URL}
+
 springdoc:
   api-docs:
     enabled: true
