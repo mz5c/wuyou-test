@@ -15,11 +15,12 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/wuyou_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
     username: root
-    password: root
+    password: ${WY_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   redis:
     host: localhost
     port: 6379
+    password: ${WY_REDIS_PASSWORD}
 
 mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
