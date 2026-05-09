@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS demo_user (
     create_time datetime     DEFAULT CURRENT_TIMESTAMP       COMMENT '创建时间',
     update_time datetime     DEFAULT CURRENT_TIMESTAMP
                                   ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX idx_username (username),
+    UNIQUE KEY uk_username (username),
     INDEX idx_deleted  (deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
