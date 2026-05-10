@@ -81,7 +81,8 @@ public class ProductService {
             product.setStock(product.getStock() - quantity);
             boolean updated = productMapper.updateById(product) > 0;
             if (updated) {
-                evictCache(productId);
+                redisTemplate.delete("product::" + productId);
+                log.info("cache evicted: product:{}", productId);
             }
             return updated;
         } catch (InterruptedException e) {

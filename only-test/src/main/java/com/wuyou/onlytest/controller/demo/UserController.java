@@ -2,6 +2,7 @@ package com.wuyou.onlytest.controller.demo;
 
 import com.wuyou.common.page.PageResult;
 import com.wuyou.common.result.Result;
+import com.wuyou.common.result.ResultCode;
 import com.wuyou.onlytest.entity.demo.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,7 +39,11 @@ public class UserController {
     @Operation(summary = "根据 ID 查询用户")
     @GetMapping("/{id}")
     public Result<User> getById(@Parameter(description = "用户 ID") @PathVariable Long id) {
-        return Result.success(userService.getById(id));
+        User user = userService.getById(id);
+        if (user == null) {
+            return Result.fail(ResultCode.NOT_FOUND.getCode(), "用户不存在或已被删除");
+        }
+        return Result.success(user);
     }
 
     @Operation(summary = "创建用户")
@@ -77,11 +82,14 @@ public class UserController {
     @Operation(summary = "恢复已删除的用户")
     @PostMapping("/{id}/restore")
     public Result<Void> restore(@Parameter(description = "用户 ID") @PathVariable Long id) {
-        User user = userService.getById(id);
-        if (user != null) {
-            user.setDeleted(0);
-            userService.updateById(user);
+        User user = userService.getByIdIncludeDeleted(id);
+        if (user == null) {
+            return Result.fail(ResultCode.NOT_FOUND.getCode(), "用户不存在");
         }
+        if (user.getDeleted() == 0) {
+            return Result.success(null);
+        }
+        userService.restoreById(id);
         return Result.success(null);
     }
 }

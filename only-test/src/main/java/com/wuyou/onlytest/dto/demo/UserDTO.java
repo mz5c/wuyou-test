@@ -6,10 +6,13 @@ import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import java.io.Serializable;
 
 @Schema(name = "UserDTO", description = "用户信息传输对象")
 @Data
-public class UserDTO {
+public class UserDTO implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "用户 ID", example = "1")
     private Long id;

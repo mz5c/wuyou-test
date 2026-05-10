@@ -41,13 +41,15 @@ public class OrderService {
 
         orderMapper.insert(order);
 
-        for (OrderItem item : items) {
-            item.setOrderId(order.getId());
-            orderItemMapper.insert(item);
-        }
+        items.forEach(item -> item.setOrderId(order.getId()));
+//        orderItemMapper.insertBatch(items);
+        orderItemMapper.insertBatchXml(items);
 
         return order;
     }
+
+
+
 
     @Transactional(rollbackFor = Exception.class)
     public void payOrder(Long orderId) {

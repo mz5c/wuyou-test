@@ -49,8 +49,11 @@ public class ProductController {
         if (product.getStock() < quantity) {
             return Result.fail(ResultCode.BIZ_ERROR.getCode(), "insufficient stock");
         }
-        product.setStock(product.getStock() - quantity);
-        boolean success = productService.updateById(product);
+        Product update = new Product();
+        update.setId(product.getId());
+        update.setStock(product.getStock() - quantity);
+        update.setVersion(product.getVersion());
+        boolean success = productService.updateById(update);
         if (!success) {
             return Result.fail(ResultCode.BIZ_ERROR.getCode(), "optimistic lock conflict, retry");
         }

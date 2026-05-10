@@ -3,13 +3,16 @@ package com.wuyou.onlytest.entity.demo;
 import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Schema(name = "Product", description = "商品实体")
 @Data
 @TableName("demo_product")
-public class Product {
+public class Product implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "商品 ID", example = "1")
     @TableId(type = IdType.AUTO)

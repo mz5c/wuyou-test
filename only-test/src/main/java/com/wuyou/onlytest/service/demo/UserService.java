@@ -17,6 +17,14 @@ public class UserService extends ServiceImpl<UserMapper, User> {
         return baseMapper.selectAllIncludeDeleted();
     }
 
+    public User getByIdIncludeDeleted(Long id) {
+        return baseMapper.selectByIdIncludeDeleted(id);
+    }
+
+    public boolean restoreById(Long id) {
+        return baseMapper.restoreById(id) > 0;
+    }
+
     public PageResult<User> pageUsers(int page, int size, String keyword) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         if (keyword != null && !keyword.isEmpty()) {

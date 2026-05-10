@@ -28,6 +28,10 @@ public class FileUploadService {
         }
     }
 
+    public Path getUploadPath() {
+        return Paths.get(uploadPath);
+    }
+
     public String upload(MultipartFile file) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("file is empty");

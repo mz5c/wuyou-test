@@ -353,22 +353,35 @@ curl -N -X POST "http://localhost:8080/api/v1/llm/chat/stream" \
 
 **SSE 事件流示例**:
 ```
-event: token
-data: 你好
+event:token
+data:{"content":"我会"}
 
-event: token
-data: ！我
+event:token
+data:{"content":"用"}
 
-event: token
-data: 是
+event:token
+data:{"content":"最适合"}
 
-event: token
-data: 一个
+event:token
+data:{"content":"你的"}
 
-...
+event:token
+data:{"content":"方式"}
 
-event: done
-data: [DONE]
+event:token
+data:{"content":"提供帮助"}
+
+event:token
+data:{"content":"！"}
+
+event:token
+data:{"content":"😊"}
+
+event:token
+data:{"content":""}
+
+event:done
+data:[DONE]
 ```
 
 **说明**: 流式接口使用 SSE (Server-Sent Events) 协议，逐个 token 返回 `event: token` 事件，全部完成后发送 `event: done` 事件。`-N` 参数禁用 curl 的缓冲，确保实时输出。
@@ -377,7 +390,7 @@ data: [DONE]
 
 ## 文件上传接口 (File Upload API)
 
-### 18. 上传文件
+### 18.1 上传文件
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/files/upload" \
@@ -406,6 +419,31 @@ curl -X POST "http://localhost:8080/api/v1/files/upload" \
 ```
 
 **说明**: 文件上传后以 UUID 重命名存储，防止文件名冲突
+
+---
+
+### 18.2 下载文件
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/files/download/{filename}" -O
+```
+
+**示例**:
+```bash
+# 下载上传返回的文件名
+curl -X GET "http://localhost:8080/api/v1/files/download/a4c75807-6911-4abd-8769-3559c88b90ca_test-upload.txt" -O
+
+# 直接输出到终端
+curl -X GET "http://localhost:8080/api/v1/files/download/a4c75807-6911-4abd-8769-3559c88b90ca_test-upload.txt"
+```
+
+**说明**: 以附件流形式下载已上传的文件，`-O` 参数保持原文件名保存，不带 `-O` 则输出到终端
+
+**响应**:
+```
+# 二进制文件流（Content-Type: application/octet-stream）
+# Content-Disposition: attachment; filename="xxx"
+```
 
 ---
 

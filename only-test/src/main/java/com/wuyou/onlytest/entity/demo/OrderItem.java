@@ -3,13 +3,17 @@ package com.wuyou.onlytest.entity.demo;
 import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Schema(name = "OrderItem", description = "订单项实体")
 @Data
 @TableName("demo_order_item")
-public class OrderItem {
+public class OrderItem implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "订单项 ID", example = "1")
     @TableId(type = IdType.AUTO)

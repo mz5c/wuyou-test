@@ -3,12 +3,16 @@ package com.wuyou.onlytest.entity.demo;
 import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Schema(name = "User", description = "用户实体")
 @Data
 @TableName("demo_user")
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Schema(description = "用户 ID", example = "1")
     @TableId(type = IdType.AUTO)

@@ -21,6 +21,7 @@ public class AsyncController {
     public Result<Void> sendNotification(@Parameter(description = "用户 ID", required = true) @RequestParam Long userId, 
                                          @Parameter(description = "通知消息", required = true) @RequestParam String message) {
         asyncTaskService.sendNotification(userId, message);
+        asyncTaskService.logOperation(userId.toString(), message);
         return Result.success(null);
     }
 }

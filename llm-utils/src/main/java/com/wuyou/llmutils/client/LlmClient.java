@@ -110,7 +110,7 @@ public class LlmClient {
                     }
                 }
                 fullResponse.getChoices().get(0).getMessage().setContent(contentBuilder.toString());
-                log.info("LLM stream completed, cost={}ms, tokens={}",
+                log.info("LLM stream completed, cost={}ms, length={}",
                         System.currentTimeMillis() - start, contentBuilder.length());
                 callback.onComplete(fullResponse);
             }

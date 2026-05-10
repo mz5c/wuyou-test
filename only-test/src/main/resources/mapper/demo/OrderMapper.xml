@@ -15,6 +15,7 @@
             <result column="product_name" property="productName"/>
             <result column="quantity" property="quantity"/>
             <result column="price" property="price"/>
+            <result column="order_id" property="orderId"/>
         </collection>
     </resultMap>
 
@@ -22,6 +23,7 @@
         SELECT
             o.*,
             oi.id AS item_id,
+            oi.order_id,
             oi.product_name,
             oi.quantity,
             oi.price
