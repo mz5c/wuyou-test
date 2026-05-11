@@ -33,8 +33,11 @@ public class IdempotentAspect {
             Object status = redisTemplate.opsForValue().get(key);
             if ("DONE".equals(status)) {
                 Object result = redisTemplate.opsForValue().get(key + ":result");
-                log.info("idempotent hit, returning cached result for {}", key);
-                return result;
+                if (result != null) {
+                    log.info("idempotent hit, returning cached result for {}", key);
+                    return result;
+                }
+                throw new BizException(ResultCode.BIZ_ERROR, "请求结果已过期，请重新提交");
             }
             throw new BizException(ResultCode.BIZ_ERROR, "请求正在处理中，请勿重复提交");
         }
@@ -46,9 +49,6 @@ public class IdempotentAspect {
                 redisTemplate.opsForValue().set(key + ":result", result, Duration.ofSeconds(idempotent.ttlSeconds()));
             }
             return result;
-        } catch (BizException e) {
-            redisTemplate.delete(key);
-            throw e;
         } catch (Throwable e) {
             redisTemplate.delete(key);
             throw e;
