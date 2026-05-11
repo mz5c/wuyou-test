@@ -73,3 +73,16 @@ CREATE TABLE IF NOT EXISTS demo_order_item (
     create_time   datetime      DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
     INDEX idx_order_id (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单明细表';
+
+-- -----------------------------------------------------------
+-- 幂等记录表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS demo_idempotent_record (
+    id         BIGINT       AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    biz_type   VARCHAR(50)  NOT NULL                      COMMENT '业务类型',
+    biz_id     VARCHAR(100) NOT NULL                      COMMENT '业务唯一ID',
+    status     TINYINT      NOT NULL DEFAULT 0            COMMENT '0-处理中 1-已完成',
+    result     TEXT                                        COMMENT '处理结果',
+    create_time datetime     DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
+    UNIQUE KEY uk_biz (biz_type, biz_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='幂等记录表';
