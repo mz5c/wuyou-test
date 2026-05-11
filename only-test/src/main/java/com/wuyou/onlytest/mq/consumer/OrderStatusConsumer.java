@@ -6,10 +6,12 @@ import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "mq.consumer.enabled", havingValue = "true")
 @RocketMQMessageListener(
         topic = "demo-order",
         consumerGroup = "demo-order-consumer",

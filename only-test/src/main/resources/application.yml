@@ -72,7 +72,10 @@ seata:
   enabled: true
   application-id: only-test
   tx-service-group: default_tx_group
-  data-source-proxy-mode: XA
+  saga:
+    enabled: true
+  # 默认使用 AT 模式; 测试 XA 模式时改为 XA
+  data-source-proxy-mode: AT
   service:
     vgroup-mapping:
       default_tx_group: default

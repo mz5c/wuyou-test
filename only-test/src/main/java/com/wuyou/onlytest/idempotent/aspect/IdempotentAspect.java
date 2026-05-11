@@ -49,7 +49,7 @@ public class IdempotentAspect {
                 redisTemplate.opsForValue().set(key + ":result", result, Duration.ofSeconds(idempotent.ttlSeconds()));
             }
             return result;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             redisTemplate.delete(key);
             throw e;
         }

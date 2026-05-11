@@ -98,6 +98,13 @@ CREATE TABLE IF NOT EXISTS seata_account (
     UNIQUE KEY uk_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Seata 账户表';
 
+-- TCC 事务记录表（用于 TCC 二阶段幂等控制）
+CREATE TABLE IF NOT EXISTS tcc_record (
+    xid   VARCHAR(64) NOT NULL COMMENT '全局事务ID',
+    phase VARCHAR(16) NOT NULL COMMENT 'COMMITTED / ROLLBACKED',
+    PRIMARY KEY (xid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='TCC 事务记录表';
+
 -- Seata AT 模式需要 undo_log 表
 CREATE TABLE IF NOT EXISTS undo_log (
     id            BIGINT       AUTO_INCREMENT PRIMARY KEY,
@@ -110,3 +117,71 @@ CREATE TABLE IF NOT EXISTS undo_log (
     log_modified  DATETIME     NOT NULL,
     UNIQUE KEY uk_undo_log (xid, branch_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AT transaction undo log';
+
+-- -----------------------------------------------------------
+-- Seata Saga 状态机存储表（Seata 1.6.1 标准 DDL）
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS seata_state_machine_def (
+    id               VARCHAR(32)   NOT NULL PRIMARY KEY,
+    name             VARCHAR(128)  NOT NULL,
+    tenant_id        VARCHAR(32)   NOT NULL DEFAULT '',
+    app_name         VARCHAR(128)  NOT NULL,
+    status           VARCHAR(32)   DEFAULT NULL,
+    gmt_create       DATETIME(3)   DEFAULT NULL,
+    ver              VARCHAR(32)   DEFAULT NULL,
+    type             VARCHAR(32)   DEFAULT NULL,
+    content          TEXT,
+    recover_strategy VARCHAR(32)   DEFAULT NULL,
+    comment_         VARCHAR(255)  DEFAULT NULL,
+    gmt_modified     DATETIME(3)   DEFAULT NULL,
+    create_time      DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    update_time      DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_name_tenant (name, tenant_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Saga state machine definition';
+
+CREATE TABLE IF NOT EXISTS seata_state_machine_inst (
+    id                  VARCHAR(128)  NOT NULL,
+    machine_id          VARCHAR(32)   NOT NULL,
+    tenant_id           VARCHAR(32)   NOT NULL DEFAULT '',
+    parent_id           VARCHAR(128)  DEFAULT NULL,
+    gmt_started         DATETIME(3)   DEFAULT NULL,
+    gmt_end             DATETIME(3)   DEFAULT NULL,
+    business_key        VARCHAR(128)  DEFAULT NULL,
+    start_params        TEXT          DEFAULT NULL,
+    end_params          TEXT          DEFAULT NULL,
+    is_running          TINYINT(1)    DEFAULT NULL,
+    status              VARCHAR(32)   DEFAULT NULL,
+    gmt_updated         DATETIME(3)   DEFAULT NULL,
+    excep               TEXT          DEFAULT NULL,
+    compensation_status VARCHAR(32)   DEFAULT NULL,
+    create_time         DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    update_time         DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_machine_id (machine_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Saga state machine instance';
+
+CREATE TABLE IF NOT EXISTS seata_state_inst (
+    id                       VARCHAR(128)  NOT NULL,
+    machine_inst_id          VARCHAR(128)  NOT NULL,
+    name                     VARCHAR(128)  DEFAULT NULL,
+    type                     VARCHAR(32)   DEFAULT NULL,
+    gmt_started              DATETIME(3)   DEFAULT NULL,
+    gmt_end                  DATETIME(3)   DEFAULT NULL,
+    service_name             VARCHAR(128)  DEFAULT NULL,
+    service_method           VARCHAR(128)  DEFAULT NULL,
+    service_type             VARCHAR(32)   DEFAULT NULL,
+    is_for_update            TINYINT(1)    DEFAULT NULL,
+    input_params             TEXT          DEFAULT NULL,
+    status                   VARCHAR(32)   DEFAULT NULL,
+    output_params            TEXT          DEFAULT NULL,
+    business_key             VARCHAR(128)  DEFAULT NULL,
+    state_id_compensated_for VARCHAR(128)  DEFAULT NULL,
+    state_id_retried_for     VARCHAR(128)  DEFAULT NULL,
+    gmt_updated              DATETIME(3)   DEFAULT NULL,
+    excep                    TEXT          DEFAULT NULL,
+    create_time              DATETIME      DEFAULT CURRENT_TIMESTAMP,
+    update_time              DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_machine_inst_id (machine_inst_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Saga state instance';

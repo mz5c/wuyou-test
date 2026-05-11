@@ -1,0 +1,103 @@
+{
+  "Name": "order-fulfillment-saga",
+  "Comment": "Order fulfillment saga demo",
+  "StartState": "CreateOrder",
+  "Version": "0.0.1",
+  "Timeout": 60000,
+  "States": {
+    "CreateOrder": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "createOrder",
+      "CompensateState": "CancelOrder",
+      "Next": "DeductStock",
+      "Input": [
+        "$initialContext.userId",
+        "$initialContext.productId",
+        "$initialContext.quantity"
+      ],
+      "Output": {
+        "orderId": "$.#.orderId",
+        "out": "$.#"
+      }
+    },
+    "CancelOrder": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "cancelOrder",
+      "Input": [
+        "$compensationContext.orderId"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    },
+    "DeductStock": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "deductStock",
+      "CompensateState": "AddStock",
+      "Next": "DeductBalance",
+      "Input": [
+        "$initialContext.productId",
+        "$initialContext.quantity"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    },
+    "AddStock": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "addStock",
+      "Input": [
+        "$compensationContext.productId",
+        "$compensationContext.quantity"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    },
+    "DeductBalance": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "deductBalance",
+      "CompensateState": "AddBalance",
+      "Next": "Notify",
+      "Input": [
+        "$initialContext.userId",
+        "$initialContext.productId",
+        "$initialContext.quantity"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    },
+    "AddBalance": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "addBalance",
+      "Input": [
+        "$compensationContext.userId",
+        "$compensationContext.productId",
+        "$compensationContext.quantity"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    },
+    "Notify": {
+      "Type": "ServiceTask",
+      "ServiceName": "sagaActionService",
+      "ServiceMethod": "notify",
+      "Next": "End",
+      "Input": [
+        "$initialContext.userId",
+        "$initialContext.orderId"
+      ],
+      "Output": {
+        "out": "$.#"
+      }
+    }
+  }
+}

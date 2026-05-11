@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class RetryDemoService {
 
-    private final AtomicInteger attemptCounter = new AtomicInteger(0);
+    private final ThreadLocal<AtomicInteger> attemptCounterHolder = ThreadLocal.withInitial(AtomicInteger::new);
 
     @Retryable(
             value = RuntimeException.class,
@@ -20,7 +20,8 @@ public class RetryDemoService {
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public String unstableCall(boolean shouldFail) {
-        int attempt = attemptCounter.incrementAndGet();
+        AtomicInteger counter = attemptCounterHolder.get();
+        int attempt = counter.incrementAndGet();
         log.info("unstableCall attempt {}", attempt);
         if (shouldFail && attempt < 3) {
             throw new RuntimeException("transient failure, attempt=" + attempt);
@@ -35,6 +36,6 @@ public class RetryDemoService {
     }
 
     public void resetCounter() {
-        attemptCounter.set(0);
+        attemptCounterHolder.remove();
     }
 }

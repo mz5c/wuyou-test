@@ -2,7 +2,8 @@
 local key = KEYS[1]
 local windowMs = tonumber(ARGV[1])
 local maxRequests = tonumber(ARGV[2])
-local now = redis.call('TIME')[1] * 1000
+local time = redis.call('TIME')
+local now = time[1] * 1000 + math.floor(time[2] / 1000)
 
 redis.call('ZREMRANGEBYSCORE', key, 0, now - windowMs)
 local count = redis.call('ZCARD', key)

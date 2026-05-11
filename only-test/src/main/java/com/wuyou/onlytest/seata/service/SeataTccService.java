@@ -10,6 +10,7 @@ import io.seata.rm.tcc.api.LocalTCC;
 import io.seata.rm.tcc.api.TwoPhaseBusinessAction;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 public class SeataTccService {
 
     private final AccountMapper accountMapper;
+    private final JdbcTemplate jdbcTemplate;
 
     @TwoPhaseBusinessAction(name = "transferTcc", commitMethod = "commit", rollbackMethod = "rollback")
     @Transactional(rollbackFor = Exception.class)
@@ -40,6 +42,15 @@ public class SeataTccService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean commit(BusinessActionContext ctx) {
+        String xid = ctx.getXid();
+        // 幂等检查: INSERT IGNORE 确保只执行一次
+        int inserted = jdbcTemplate.update(
+                "INSERT IGNORE INTO tcc_record (xid, phase) VALUES (?, 'COMMITTED')", xid);
+        if (inserted == 0) {
+            log.info("TCC already committed for xid={}, skipping", xid);
+            return true;
+        }
+
         Long fromUserId = Long.valueOf(ctx.getActionContext("fromUserId").toString());
         Long toUserId = Long.valueOf(ctx.getActionContext("toUserId").toString());
         BigDecimal amount = new BigDecimal(ctx.getActionContext("amount").toString());
@@ -57,6 +68,15 @@ public class SeataTccService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean rollback(BusinessActionContext ctx) {
+        String xid = ctx.getXid();
+        // 幂等检查: INSERT IGNORE 确保只执行一次
+        int inserted = jdbcTemplate.update(
+                "INSERT IGNORE INTO tcc_record (xid, phase) VALUES (?, 'ROLLBACKED')", xid);
+        if (inserted == 0) {
+            log.info("TCC already rolled back for xid={}, skipping", xid);
+            return true;
+        }
+
         Long fromUserId = Long.valueOf(ctx.getActionContext("fromUserId").toString());
         BigDecimal amount = new BigDecimal(ctx.getActionContext("amount").toString());
         log.info("TCC rollback: unfreeze {} from user {}", amount, fromUserId);

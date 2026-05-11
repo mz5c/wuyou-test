@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class LockDemoService {
 
     public Product readProduct(Long productId) {
         RReadWriteLock rwLock = redissonClient.getReadWriteLock("lock:product:" + productId);
-        rwLock.readLock().lock(5, TimeUnit.SECONDS);
+        rwLock.readLock().lock();
         try {
             log.info("acquired read lock for product {}", productId);
             sleep(1000);
@@ -34,7 +35,7 @@ public class LockDemoService {
 
     public void writeProduct(Long productId, int stock) {
         RReadWriteLock rwLock = redissonClient.getReadWriteLock("lock:product:" + productId);
-        rwLock.writeLock().lock(5, TimeUnit.SECONDS);
+        rwLock.writeLock().lock();
         try {
             log.info("acquired write lock for product {}", productId);
             Product product = productMapper.selectById(productId);

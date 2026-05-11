@@ -17,7 +17,7 @@ public class LockController {
     private final LockDemoService lockDemoService;
 
     @Operation(summary = "获取读锁查询商品")
-    @PostMapping("/product/{id}/read")
+    @GetMapping("/product/{id}/read")
     public Result<Product> readProduct(@PathVariable Long id) {
         return Result.success(lockDemoService.readProduct(id));
     }
