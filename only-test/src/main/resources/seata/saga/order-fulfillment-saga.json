@@ -1,0 +1,42 @@
+{
+  "Name": "order-fulfillment-saga",
+  "Comment": "订单履约 Saga：创建订单 -> 扣库存 -> 扣余额 -> 补偿",
+  "StartState": "CreateOrder",
+  "Version": "0.0.1",
+  "States": {
+    "CreateOrder": {
+      "Type": "ServiceTask",
+      "ServiceName": "orderSagaHandler",
+      "ServiceMethod": "createOrder",
+      "CompensateState": "CompensateCreateOrder",
+      "Next": "DeductStock",
+      "Input": ["$", "userId", "productId", "quantity"]
+    },
+    "DeductStock": {
+      "Type": "ServiceTask",
+      "ServiceName": "orderSagaHandler",
+      "ServiceMethod": "deductStock",
+      "CompensateState": "CompensateDeductStock",
+      "Next": "DeductBalance",
+      "Input": ["$", "productId", "quantity"]
+    },
+    "DeductBalance": {
+      "Type": "ServiceTask",
+      "ServiceName": "orderSagaHandler",
+      "ServiceMethod": "deductBalance",
+      "CompensateState": "CompensateDeductBalance",
+      "Next": "Notify",
+      "Input": ["$", "userId", "orderId", "totalAmount"]
+    },
+    "Notify": {
+      "Type": "ServiceTask",
+      "ServiceName": "orderSagaHandler",
+      "ServiceMethod": "sendNotification",
+      "Next": "Success",
+      "Input": ["$", "userId"]
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}
