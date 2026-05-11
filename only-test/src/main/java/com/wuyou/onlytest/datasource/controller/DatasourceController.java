@@ -2,12 +2,15 @@ package com.wuyou.onlytest.datasource.controller;
 
 import com.wuyou.common.result.Result;
 import com.wuyou.onlytest.datasource.service.DatasourceService;
+import com.wuyou.onlytest.dto.demo.UserDTO;
 import com.wuyou.onlytest.entity.demo.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Tag(name = "多数据源测试")
@@ -26,8 +29,8 @@ public class DatasourceController {
 
     @Operation(summary = "主库写入用户")
     @PostMapping("/user")
-    public Result<Void> createUser(@RequestParam String username, @RequestParam String nickname) {
-        datasourceService.createUserOnMaster(username, nickname);
+    public Result<Void> createUser(@Parameter(description = "用户信息", required = true) @Valid @RequestBody UserDTO dto) {
+        datasourceService.createUserOnMaster(dto.getUsername(), dto.getNickname());
         return Result.success(null);
     }
 

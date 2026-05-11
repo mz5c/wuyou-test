@@ -901,7 +901,12 @@ curl -X GET "http://localhost:8080/api/v1/datasource/users"
 ### 36. 主库写入用户
 
 ```bash
-curl -X POST "http://localhost:8080/api/v1/datasource/user?username=fromMaster&nickname=主库写入"
+curl -X POST "http://localhost:8080/api/v1/datasource/user" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "test_user",
+    "nickname": "test_user"
+  }'
 ```
 
 **说明**: 使用 `@DS("master")` 强制路由到主库执行写操作。

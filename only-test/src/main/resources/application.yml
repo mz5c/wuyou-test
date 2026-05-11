@@ -23,7 +23,7 @@ spring:
           password: ${WY_DB_PASSWORD}
           driver-class-name: com.mysql.cj.jdbc.Driver
         slave:
-          url: jdbc:mysql://localhost:3306/wuyou_test?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+          url: jdbc:mysql://localhost:3306/wuyou_test_slave?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
           username: root
           password: ${WY_DB_PASSWORD}
           driver-class-name: com.mysql.cj.jdbc.Driver
