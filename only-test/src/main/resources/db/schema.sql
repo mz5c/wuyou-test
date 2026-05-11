@@ -86,3 +86,27 @@ CREATE TABLE IF NOT EXISTS demo_idempotent_record (
     create_time datetime     DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
     UNIQUE KEY uk_biz (biz_type, biz_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='幂等记录表';
+
+-- -----------------------------------------------------------
+-- Seata 账户表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS seata_account (
+    id       BIGINT        AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id  BIGINT        NOT NULL                      COMMENT '用户ID',
+    balance  DECIMAL(10,2) NOT NULL DEFAULT 0            COMMENT '余额',
+    frozen   DECIMAL(10,2) NOT NULL DEFAULT 0            COMMENT '冻结金额(TCC)',
+    UNIQUE KEY uk_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Seata 账户表';
+
+-- Seata AT 模式需要 undo_log 表
+CREATE TABLE IF NOT EXISTS undo_log (
+    id            BIGINT       AUTO_INCREMENT PRIMARY KEY,
+    branch_id     BIGINT       NOT NULL,
+    xid           VARCHAR(100) NOT NULL,
+    context       VARCHAR(128) NOT NULL,
+    rollback_info LONGBLOB     NOT NULL,
+    log_status    INT          NOT NULL,
+    log_created   DATETIME     NOT NULL,
+    log_modified  DATETIME     NOT NULL,
+    UNIQUE KEY uk_undo_log (xid, branch_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AT transaction undo log';

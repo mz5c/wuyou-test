@@ -67,3 +67,15 @@ rocketmq:
   producer:
     group: demo-producer-group
     send-message-timeout: 3000
+
+seata:
+  enabled: true
+  application-id: only-test
+  tx-service-group: default_tx_group
+  service:
+    vgroup-mapping:
+      default_tx_group: default
+    grouplist:
+      default: 127.0.0.1:8091
+  registry:
+    type: file
