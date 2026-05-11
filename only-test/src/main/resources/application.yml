@@ -61,3 +61,9 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
   show-actuator: false
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: demo-producer-group
+    send-message-timeout: 3000
