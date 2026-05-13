@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener;
 import org.apache.rocketmq.spring.core.RocketMQLocalTransactionState;
+import org.springframework.context.annotation.Profile;
 import org.springframework.messaging.Message;
 
 @Slf4j
+@Profile("full")
 @RocketMQTransactionListener
 public class TransactionListenerImpl implements RocketMQLocalTransactionListener {
 

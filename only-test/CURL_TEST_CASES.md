@@ -1187,4 +1187,232 @@ curl -X POST "http://localhost:8080/api/v1/seata/xa/order?userId=1&productId=1&q
 
 ---
 
-**文档生成时间**: 2026 年 5 月 11 日
+## 本地缓存接口 (Local Cache API)
+
+### 52. Guava 自动加载缓存
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/guava/auto-load?key=hello"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": "loaded:hello",
+  "success": true
+}
+```
+
+**说明**: 同一 key 第二次请求直接命中缓存，不触发 `CacheLoader` 加载。
+
+---
+
+### 53. Guava 写入过期
+
+```bash
+# 首次请求
+curl -X GET "http://localhost:8080/api/v1/local-cache/guava/write-expire?key=test"
+
+# 5s 后再次请求（已过期，重新加载）
+curl -X GET "http://localhost:8080/api/v1/local-cache/guava/write-expire?key=test"
+```
+
+**说明**: `expireAfterWrite=5s`，写入 5 秒后过期，过期后首次访问重新加载。观察返回值的时间戳是否变化。
+
+---
+
+### 54. Guava 访问过期
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/guava/access-expire?key=test"
+```
+
+**说明**: `expireAfterAccess=5s`，5 秒内无任何读写则过期。持续访问不会过期（每次访问重置计时器）。
+
+---
+
+### 55. Guava 缓存统计
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/guava/stats"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "hitCount": 2,
+    "missCount": 2,
+    "hitRate": 0.5,
+    "evictionCount": 0,
+    "loadCount": 2,
+    "totalLoadTime": 0.0
+  },
+  "success": true
+}
+```
+
+---
+
+### 56. Guava 淘汰监听
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/local-cache/guava/removal-test"
+```
+
+**说明**: 缓存 `maximumSize=5`，插入 10 个 key，触发 5 次淘汰。观察服务端日志中的 `RemovalListener` 输出。
+
+---
+
+### 57. Caffeine 基本缓存
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/basic?key=hello"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": "basic:hello",
+  "success": true
+}
+```
+
+---
+
+### 58. Caffeine LoadingCache
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/loading?key=key1"
+```
+
+**说明**: 使用 `CacheLoader` 自动加载缓存，第二次请求命中。
+
+---
+
+### 59. Caffeine 定时刷新
+
+```bash
+# 首次请求
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/refresh?key=rk"
+
+# 等待 3s 后再次请求（触发异步刷新）
+sleep 3 && curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/refresh?key=rk"
+```
+
+**说明**: `refreshAfterWrite=3s`，写入 3 秒后访问触发异步刷新，刷新期间返回旧值。观察服务端日志中的"异步刷新"输出。
+
+---
+
+### 60. Caffeine 异步加载
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/async?key=hello"
+```
+
+**说明**: 使用 `AsyncLoadingCache`，异步线程加载缓存，不阻塞主请求。
+
+---
+
+### 61. Caffeine 自定义过期
+
+```bash
+# short 前缀的 key 2s 过期
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/custom-expire?key=short-x"
+sleep 3 && curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/custom-expire?key=short-x"
+
+# 普通 key 10s 过期
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/custom-expire?key=normal-y"
+```
+
+**说明**: `Expiry` 接口实现不同 key 不同 TTL。`short-` 前缀的 key 2 秒过期，其余 key 10 秒过期。
+
+---
+
+### 62. Caffeine 批量获取
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/batch?keys=a,b,c"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "a": "loaded:a",
+    "b": "loaded:b",
+    "c": "loaded:c"
+  },
+  "success": true
+}
+```
+
+---
+
+### 63. Caffeine 淘汰监听
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/local-cache/caffeine/eviction-test"
+```
+
+**说明**: 缓存 `maximumSize=3`，插入 10 个 key，触发 7 次淘汰。观察服务端日志中的 `evictionListener` 输出。
+
+---
+
+### 64. Caffeine 详细统计
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/local-cache/caffeine/stats"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "hitCount": 0,
+    "missCount": 1,
+    "hitRate": 0.0,
+    "missRate": 1.0,
+    "evictionCount": 0,
+    "evictionWeight": 0,
+    "loadCount": 1,
+    "loadFailureCount": 0,
+    "totalLoadTime": 0,
+    "averageLoadPenalty": 0.0,
+    "requestCount": 1
+  },
+  "success": true
+}
+```
+
+---
+
+### 65. 失效缓存
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/local-cache/invalidate?key=hello"
+```
+
+**说明**: 同时失效 Guava 和 Caffeine 中指定 key 的缓存。
+
+---
+
+## 各模块前置依赖（更新）
+
+| 模块 | 前置依赖 | 备注 |
+|------|----------|------|
+| 本地缓存 | 无 | Guava Cache 和 Caffeine 均为进程内缓存，无需外部中间件 |
+
+---
+
+**文档生成时间**: 2026 年 5 月 13 日

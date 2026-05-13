@@ -4,14 +4,6 @@ server:
 spring:
   application:
     name: only-test
-  profiles:
-    active: dev
-
----
-spring:
-  config:
-    activate:
-      on-profile: dev
   datasource:
     dynamic:
       primary: master
@@ -62,11 +54,30 @@ springdoc:
     display-request-duration: true
   show-actuator: false
 
+seata:
+  enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: full
+
 rocketmq:
   name-server: 127.0.0.1:9876
   producer:
     group: demo-producer-group
     send-message-timeout: 3000
+#    secret-key: 12345678
+#    access-key: rocketmq2
+  consumer:
+#    secret-key: 12345678
+#    access-key: rocketmq2
+    group: demo-producer-group
+
+mq:
+  consumer:
+    enabled: true
 
 seata:
   enabled: true

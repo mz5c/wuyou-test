@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:4.9.7
+    container_name: rocketmq-namesrv
+    restart: always
+    ports:
+      - "9876:9876"
+    environment:
+      JAVA_OPT_EXT: "-server -Xms512m -Xmx512m -Xmn256m"
+    command: sh mqnamesrv
+    networks:
+      - rocketmq
+
+  rocketmq-broker:
+    image: apache/rocketmq:4.9.7
+    container_name: rocketmq-broker
+    restart: always
+    depends_on:
+      - rocketmq-namesrv
+    ports:
+      - "10909:10909"
+      - "10911:10911"
+      - "10912:10912"
+    environment:
+      JAVA_OPT_EXT: "-server -Xms512m -Xmx512m -Xmn256m"
+    command: sh mqbroker -n rocketmq-namesrv:9876 -c /home/rocketmq/conf/broker.conf
+    volumes:
+      - ./broker.conf:/home/rocketmq/conf/broker.conf
+    networks:
+      - rocketmq
+
+  rocketmq-dashboard:
+    image: apacherocketmq/rocketmq-dashboard:latest
+    container_name: rocketmq-dashboard
+    restart: always
+    depends_on:
+      - rocketmq-namesrv
+    ports:
+      - "8082:8082"
+    environment:
+      JAVA_OPTS: >
+        -Drocketmq.namesrv.addr=rocketmq-namesrv:9876
+        -Dcom.rocketmq.sendMessageWithVIPChannel=false
+    networks:
+      - rocketmq
+
+networks:
+  rocketmq:
+    driver: bridge

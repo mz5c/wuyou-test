@@ -4,6 +4,7 @@ import io.seata.saga.engine.StateMachineEngine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@Profile("full")
 @RequiredArgsConstructor
 public class SagaStateMachineInit {
 
