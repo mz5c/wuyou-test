@@ -1415,4 +1415,307 @@ curl -X POST "http://localhost:8080/api/v1/local-cache/invalidate?key=hello"
 
 ---
 
-**文档生成时间**: 2026 年 5 月 13 日
+---
+
+## ES 操作接口 (Elasticsearch API)
+
+### HTTP API 方式（无 ES 依赖）
+
+> 基础路径: `/api/v1/es/http`
+
+#### 66. 创建索引
+
+```bash
+# 创建简单索引（不带 mapping）
+curl -X POST "http://localhost:8080/api/v1/es/http/index/my-index" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+
+# 创建索引并指定 settings 和 mappings
+curl -X POST "http://localhost:8080/api/v1/es/http/index/my-index" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "title": {"type": "text"},
+        "price": {"type": "double"},
+        "createTime": {"type": "date"}
+      }
+    }
+  }'
+```
+
+---
+
+#### 67. 检查索引是否存在
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/http/index/my-index/exists"
+```
+
+**响应**: `true` 或 `false`
+
+---
+
+#### 68. 获取索引信息
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/http/index/my-index"
+```
+
+---
+
+#### 69. 列出所有索引
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/http/indices"
+```
+
+---
+
+#### 70. 创建文档（自动生成 ID）
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/es/http/doc/my-index" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "iPhone 15 Pro",
+    "price": 8999.00,
+    "tags": ["手机", "苹果"],
+    "createTime": "2026-05-17"
+  }'
+```
+
+---
+
+#### 71. 创建文档（指定 ID）
+
+```bash
+curl -X PUT "http://localhost:8080/api/v1/es/http/doc/my-index/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MacBook Air M3",
+    "price": 10999.00,
+    "tags": ["笔记本", "苹果"],
+    "createTime": "2026-05-17"
+  }'
+```
+
+---
+
+#### 72. 获取文档
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/http/doc/my-index/1"
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "_index": "my-index",
+    "_id": "1",
+    "_version": 1,
+    "_seq_no": 0,
+    "_primary_term": 1,
+    "found": true,
+    "_source": {
+      "title": "MacBook Air M3",
+      "price": 10999.0,
+      "tags": ["笔记本", "苹果"],
+      "createTime": "2026-05-17"
+    }
+  },
+  "success": true
+}
+```
+
+---
+
+#### 73. 更新文档（部分更新）
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/es/http/doc/my-index/1/update" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "price": 9999.00
+  }'
+```
+
+---
+
+#### 74. 搜索文档
+
+```bash
+# matchAll 查询
+curl -X POST "http://localhost:8080/api/v1/es/http/search/my-index" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": {
+      "match_all": {}
+    }
+  }'
+
+# 按条件搜索
+curl -X POST "http://localhost:8080/api/v1/es/http/search/my-index" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": {
+      "match": {
+        "title": "iPhone"
+      }
+    }
+  }'
+```
+
+---
+
+#### 75. 删除文档
+
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/es/http/doc/my-index/1"
+```
+
+---
+
+#### 76. 删除索引
+
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/es/http/index/my-index"
+```
+
+---
+
+### Spring Data 方式（引入 ES 依赖）
+
+> 基础路径: `/api/v1/es/sd`
+
+#### 77. 创建索引
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/es/sd/index/my-index-sd" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "properties": {
+        "name": {"type": "text"},
+        "price": {"type": "double"},
+        "date": {"type": "date"}
+      }
+    }
+  }'
+```
+
+---
+
+#### 78. 检查索引是否存在
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/sd/index/my-index-sd/exists"
+```
+
+---
+
+#### 79. 获取索引信息
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/sd/index/my-index-sd"
+```
+
+---
+
+#### 80. 创建文档（自动生成 ID）
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/es/sd/doc/my-index-sd" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Galaxy S25",
+    "price": 6999.00,
+    "date": "2026-05-17"
+  }'
+```
+
+---
+
+#### 81. 创建文档（指定 ID）
+
+```bash
+curl -X PUT "http://localhost:8080/api/v1/es/sd/doc/my-index-sd/1" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Galaxy S25 Ultra",
+    "price": 9999.00,
+    "date": "2026-05-17"
+  }'
+```
+
+---
+
+#### 82. 获取文档
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/es/sd/doc/my-index-sd/1"
+```
+
+---
+
+#### 83. 更新文档
+
+```bash
+curl -X POST "http://localhost:8080/api/v1/es/sd/doc/my-index-sd/1/update" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "price": 8999.00
+  }'
+```
+
+---
+
+#### 84. 搜索文档
+
+```bash
+# 全量搜索
+curl -X GET "http://localhost:8080/api/v1/es/sd/search/my-index-sd?size=10"
+
+# 按字段搜索
+curl -X GET "http://localhost:8080/api/v1/es/sd/search/my-index-sd/field?field=name&value=Galaxy&size=10"
+
+# 原始 JSON 查询搜索
+curl -X POST "http://localhost:8080/api/v1/es/sd/search/my-index-sd/raw?size=10" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "match": { "name": "Galaxy" }
+  }'
+```
+
+---
+
+#### 85. 删除文档
+
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/es/sd/doc/my-index-sd/1"
+```
+
+---
+
+#### 86. 删除索引
+
+```bash
+curl -X DELETE "http://localhost:8080/api/v1/es/sd/index/my-index-sd"
+```
+
+---
+
+
+**文档生成时间**: 2026 年 5 月 17 日

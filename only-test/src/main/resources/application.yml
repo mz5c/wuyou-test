@@ -57,6 +57,11 @@ springdoc:
 seata:
   enabled: false
 
+es:
+  endpoint: http://localhost:9200
+  username: elastic
+  password: 123456abc
+
 ---
 spring:
   config:
