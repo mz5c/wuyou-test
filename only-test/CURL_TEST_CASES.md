@@ -1717,5 +1717,142 @@ curl -X DELETE "http://localhost:8080/api/v1/es/sd/index/my-index-sd"
 
 ---
 
+# 金额交易测试沙箱 (tx)
 
-**文档生成时间**: 2026 年 5 月 17 日
+## 账户管理
+
+#### 87. 开户
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/accounts?userId=1001"
+```
+
+#### 88. 查询账户
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/tx/accounts/1"
+```
+
+#### 89. 充值
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/accounts/1/recharge?amount=10000.00"
+```
+
+开通第二个账户用于转账测试：
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/accounts?userId=1002"
+```
+
+充值 5000：
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/accounts/2/recharge?amount=5000.00"
+```
+
+## 转账
+
+#### 90. 基础转账 (REQUIRED + 悲观锁)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/transfer" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountNo": "ACC2056735586217189376",
+    "toAccountNo": "ACC2056735893416402944",
+    "amount": 1000.00
+  }'
+```
+
+#### 91. 悲观锁转账
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/transfer/pessimistic" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountNo": "ACC2056735586217189376",
+    "toAccountNo": "ACC2056735893416402944",
+    "amount": 500.00
+  }'
+```
+
+#### 92. 乐观锁转账
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/transfer/optimistic" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountNo": "ACC2056735586217189376",
+    "toAccountNo": "ACC2056735893416402944",
+    "amount": 200.00
+  }'
+```
+
+#### 93. 分布式锁转账 (Redisson)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/transfer/distributed-lock" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fromAccountNo": "ACC2056735586217189376",
+    "toAccountNo": "ACC2056735893416402944",
+    "amount": 300.00
+  }'
+```
+
+## 分页查询转账记录
+
+#### 94. 查询转账记录
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/tx/records?page=1&size=10"
+```
+
+按账户查询：
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/tx/records?page=1&size=10&accountNo=ACNO1001"
+```
+
+## 金额分摊计算
+
+#### 95. 按比例分摊
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/calc/split" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "totalAmount": 1000.00,
+    "ratios": [30, 30, 30, 10]
+  }'
+```
+
+余数兜底分摊（尾差测试）：
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/calc/split" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "totalAmount": 100.00,
+    "ratios": [33, 33, 33]
+  }'
+```
+
+自定义精度与舍入模式：
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/tx/calc/split" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "totalAmount": 200.00,
+    "ratios": [1, 1, 1],
+    "scale": 4,
+    "roundingMode": "HALF_UP"
+  }'
+```
+
+---
+
+
+**文档生成时间**: 2026 年 5 月 19 日

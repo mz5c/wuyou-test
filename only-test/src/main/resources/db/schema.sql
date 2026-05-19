@@ -185,3 +185,40 @@ CREATE TABLE IF NOT EXISTS seata_state_inst (
     PRIMARY KEY (id),
     KEY idx_machine_inst_id (machine_inst_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Saga state instance';
+
+-- -----------------------------------------------------------
+-- 交易沙箱 - 账户表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tx_account (
+    id          BIGINT        AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    user_id     BIGINT        NOT NULL                       COMMENT '用户ID',
+    account_no  VARCHAR(32)   NOT NULL                       COMMENT '账户编号',
+    balance     DECIMAL(20,2) NOT NULL DEFAULT 0.00          COMMENT '余额',
+    frozen      DECIMAL(20,2) NOT NULL DEFAULT 0.00          COMMENT '冻结金额',
+    status      TINYINT       NOT NULL DEFAULT 1             COMMENT '1-正常 2-冻结 3-销户',
+    version     INT           NOT NULL DEFAULT 0             COMMENT '乐观锁',
+    create_time DATETIME      DEFAULT CURRENT_TIMESTAMP      COMMENT '创建时间',
+    update_time DATETIME      DEFAULT CURRENT_TIMESTAMP
+                                  ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_account_no (account_no),
+    UNIQUE KEY uk_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易沙箱-账户表';
+
+-- -----------------------------------------------------------
+-- 交易沙箱 - 转账记录表
+-- -----------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tx_transfer_record (
+    id              BIGINT        AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    biz_no          VARCHAR(64)   NOT NULL                   COMMENT '业务编号(幂等)',
+    from_account_no VARCHAR(32)   NOT NULL                   COMMENT '转出账户',
+    to_account_no   VARCHAR(32)   NOT NULL                   COMMENT '转入账户',
+    amount          DECIMAL(20,2) NOT NULL                   COMMENT '转账金额',
+    status          TINYINT       NOT NULL DEFAULT 0         COMMENT '0-处理中 1-成功 2-失败',
+    fail_reason     VARCHAR(255)  DEFAULT NULL               COMMENT '失败原因',
+    create_time     DATETIME      DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
+    update_time     DATETIME      DEFAULT CURRENT_TIMESTAMP
+                                     ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_biz_no (biz_no),
+    KEY idx_from_account (from_account_no),
+    KEY idx_to_account (to_account_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易沙箱-转账记录表';
