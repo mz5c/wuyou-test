@@ -1854,5 +1854,365 @@ curl -s -X POST "http://localhost:8080/api/v1/tx/calc/split" \
 
 ---
 
+# Redis 数据结构测试
 
-**文档生成时间**: 2026 年 5 月 19 日
+## List 列表
+
+> List 是基于链表的有序结构，支持左右两端推入/弹出，适合消息队列、最新消息列表等场景。
+
+#### 96. List - 右侧推入 (RPUSH)
+
+```bash
+# 依次从右侧推入元素 A、B、C，列表变为 [A, B, C]
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/rpush?key=mylist&value=A"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/rpush?key=mylist&value=B"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/rpush?key=mylist&value=C"
+```
+
+#### 97. List - 左侧推入 (LPUSH)
+
+```bash
+# 从左侧推入 X，列表变为 [X, A, B, C]
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/lpush?key=mylist&value=X"
+```
+
+#### 98. List - 获取范围 (LRANGE)
+
+```bash
+# 获取全部元素
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/list/range?key=mylist"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": ["X", "A", "B", "C"]
+}
+```
+
+#### 99. List - 获取列表长度 (LLEN)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/list/size?key=mylist"
+```
+
+**响应**: `{"success": true, "data": 4}`
+
+#### 100. List - 设置指定索引 (LSET)
+
+```bash
+# 将索引 1 的值改为 "Z"，列表变为 [X, Z, B, C]
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/set?key=mylist&index=1&value=Z"
+```
+
+#### 101. List - 右侧弹出 (RPOP)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/rpop?key=mylist"
+```
+
+**响应**: `{"success": true, "data": "C"}`
+
+#### 102. List - 左侧弹出 (LPOP)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/lpop?key=mylist"
+```
+
+**响应**: `{"success": true, "data": "X"}`
+
+#### 103. List - 删除指定元素 (LREM)
+
+```bash
+# 删除列表中所有值为 "A" 的元素
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/list/remove?key=mylist&count=0&value=A"
+```
+
+**说明**: `count=0` 删除所有匹配的元素，`count>0` 从头部删指定数量，`count<0` 从尾部删指定数量。
+
+## Hash 散列
+
+> Hash 是 field-value 映射表，适合存储对象、配置信息等结构化数据。
+
+#### 104. Hash - 设置字段值 (HSET)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/hash/put?key=user:1001&field=name&value=%E5%BC%A0%E4%B8%89"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/hash/put?key=user:1001&field=age&value=28"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/hash/put?key=user:1001&field=city&value=%E5%8C%97%E4%BA%AC"
+```
+
+#### 105. Hash - 批量设置 (HMSET)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/hash/put-all?key=user:1002" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"李四","age":32,"city":"上海","dept":"技术部"}'
+```
+
+#### 106. Hash - 获取字段值 (HGET)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/get?key=user:1001&field=name"
+```
+
+**响应**: `{"success": true, "data": "张三"}`
+
+#### 107. Hash - 获取所有字段和值 (HGETALL)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/entries?key=user:1001"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "name": "张三",
+    "age": "28",
+    "city": "北京"
+  }
+}
+```
+
+#### 108. Hash - 获取所有字段名 (HKEYS)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/keys?key=user:1001"
+```
+
+#### 109. Hash - 获取所有字段值 (HVALS)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/values?key=user:1001"
+```
+
+#### 110. Hash - 判断字段是否存在 (HEXISTS)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/exists?key=user:1001&field=name"
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/exists?key=user:1001&field=salary"
+```
+
+#### 111. Hash - 获取字段数量 (HLEN)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/hash/size?key=user:1001"
+```
+
+#### 112. Hash - 删除字段 (HDEL)
+
+```bash
+# 删除 city 字段，可同时删除多个字段
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/hash/delete?key=user:1001&fields=city"
+```
+
+## Set 集合
+
+> Set 是无序、不可重复的集合，支持交集/并集/差集运算，适合标签、关注关系等场景。
+
+#### 113. Set - 添加元素 (SADD)
+
+```bash
+# 创建集合 set:dev，包含 3 个元素
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/set/add?key=set:dev&values=Java&values=Python&values=Go"
+
+# 创建集合 set:ops，包含 3 个元素
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/set/add?key=set:ops&values=Python&values=Go&values=Docker"
+
+# 重复添加不会生效
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/set/add?key=set:dev&values=Java"
+```
+
+#### 114. Set - 获取所有元素 (SMEMBERS)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/members?key=set:dev"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": ["Java", "Python", "Go"]
+}
+```
+
+#### 115. Set - 判断元素是否存在 (SISMEMBER)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/contains?key=set:dev&value=Go"
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/contains?key=set:dev&value=Rust"
+```
+
+**响应**: `true` / `false`
+
+#### 116. Set - 获取元素个数 (SCARD)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/size?key=set:dev"
+```
+
+#### 117. Set - 交集 (SINTER)
+
+```bash
+# dev 和 ops 都掌握的技能
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/intersect?key1=set:dev&key2=set:ops"
+```
+
+**响应**: `["Python", "Go"]`
+
+#### 118. Set - 并集 (SUNION)
+
+```bash
+# dev 和 ops 的所有技能（去重）
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/union?key1=set:dev&key2=set:ops"
+```
+
+**响应**: `["Java", "Python", "Go", "Docker"]`
+
+#### 119. Set - 差集 (SDIFF)
+
+```bash
+# dev 有但 ops 没有的技能
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/diff?key1=set:dev&key2=set:ops"
+```
+
+**响应**: `["Java"]`
+
+#### 120. Set - 随机获取元素 (SRANDMEMBER)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/set/random-member?key=set:dev"
+```
+
+#### 121. Set - 随机弹出元素 (SPOP)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/set/pop?key=set:dev"
+```
+
+#### 122. Set - 删除元素 (SREM)
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/set/remove?key=set:ops&values=Docker"
+```
+
+## ZSet 有序集合
+
+> ZSet 是有序、不可重复的集合，每个元素关联一个 score（分数），按分数排序。适合排行榜、延时队列等场景。
+
+#### 123. ZSet - 添加元素 (ZADD)
+
+```bash
+# 创建排行榜，添加商品销量
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/add?key=rank:sales&value=iPhone15&score=850"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/add?key=rank:sales&value=MacBookAir&score=620"
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/add?key=rank:sales&value=%E5%8D%8E%E4%B8%BAP70&score=980"
+```
+
+#### 124. ZSet - 批量添加
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/add-batch?key=rank:sales" \
+  -H "Content-Type: application/json" \
+  -d '{"GalaxyS25": 750, "小米14": 890, "OPPOFindX8": 530}'
+```
+
+#### 125. ZSet - 获取分数 (ZSCORE)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/score?key=rank:sales&value=iPhone15"
+```
+
+**响应**: `{"success": true, "data": 850.0}`
+
+#### 126. ZSet - 获取正序排名 (ZRANK)
+
+```bash
+# 从低到高排名，0 为最低
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/rank?key=rank:sales&value=MacBookAir"
+```
+
+#### 127. ZSet - 获取倒序排名 (ZREVRANK)
+
+```bash
+# 从高到低排名，0 为最高（适合排行榜）
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/reverse-rank?key=rank:sales&value=iPhone15"
+```
+
+#### 128. ZSet - 按索引范围获取 (ZRANGE)
+
+```bash
+# 正序获取全部元素
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/range?key=rank:sales"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": ["OPPOFindX8", "MacBookAir", "GalaxyS25", "iPhone15", "小米14", "华为P70"]
+}
+```
+
+#### 129. ZSet - 按索引范围倒序获取 (ZREVRANGE)
+
+```bash
+# 销量排行榜（从高到低）
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/reverse-range?key=rank:sales"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": ["华为P70", "小米14", "iPhone15", "GalaxyS25", "MacBookAir", "OPPOFindX8"]
+}
+```
+
+#### 130. ZSet - 按分数范围获取 (ZRANGEBYSCORE)
+
+```bash
+# 获取销量 600-900 的商品
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/range-by-score?key=rank:sales&min=600&max=900"
+```
+
+**响应**: `["MacBookAir", "GalaxyS25", "iPhone15", "小米14"]`
+
+#### 131. ZSet - 获取元素个数 (ZCARD)
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/size?key=rank:sales"
+```
+
+#### 132. ZSet - 统计分数范围内元素个数 (ZCOUNT)
+
+```bash
+# 销量 >= 800 的商品个数
+curl -s -X GET "http://localhost:8080/api/v1/redis/ds/zset/count?key=rank:sales&min=800&max=99999"
+```
+
+**响应**: `{"success": true, "data": 3}`
+
+#### 133. ZSet - 增加分数 (ZINCRBY)
+
+```bash
+# iPhone15 销量 +50，变为 900
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/increment-score?key=rank:sales&value=iPhone15&delta=50"
+```
+
+**响应**: `{"success": true, "data": 900.0}`
+
+#### 134. ZSet - 删除元素 (ZREM)
+
+```bash
+# 删除 OPPOFindX8
+curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/remove?key=rank:sales&values=OPPOFindX8"
+```
+
+---
+
+**文档生成时间**: 2026 年 5 月 25 日
