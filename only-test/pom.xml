@@ -110,6 +110,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
         </dependency>
+        <!-- Netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
         <!-- elasticsearch-java 需要 jakarta.json-api >= 2.0  -->
         <dependency>
             <groupId>jakarta.json</groupId>

@@ -2215,4 +2215,187 @@ curl -s -X POST "http://localhost:8080/api/v1/redis/ds/zset/remove?key=rank:sale
 
 ---
 
+# Netty 网络编程测试
+
+## 服务器管理
+
+#### 135. 查看所有 Netty 服务器状态
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/netty/servers"
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "echo": false,
+    "protocol": false,
+    "http": false,
+    "websocket": false,
+    "heartbeat": false
+  }
+}
+```
+
+## Echo TCP 回显
+
+> Echo 是最基础的 TCP 演示：Client 发送消息，Server 原样返回。演示 `ServerBootstrap`、`ChannelInitializer`、`ChannelHandler` 的核心管道模型。
+
+#### 136. Echo - 启动服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/echo/start"
+```
+
+#### 137. Echo - 发送消息并接收回显
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/echo/send?msg=HelloNetty"
+```
+
+**响应示例**: `{"success": true, "data": "ECHO: HelloNetty"}`
+
+```bash
+# 多条消息测试
+curl -s -X POST "http://localhost:8080/api/v1/netty/echo/send?msg=%E4%BD%A0%E5%A5%BD%EF%BC%8C%E4%B8%96%E7%95%8C"
+```
+
+#### 138. Echo - 停止服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/echo/stop"
+```
+
+## 自定义协议（粘包拆包）
+
+> 演示 Netty 解决 TCP 粘包/拆包问题。定义 `4字节长度 + JSON Body` 的协议，使用 `LengthFieldBasedFrameDecoder` 自动解码。适合面试/实战高频考点。
+
+#### 139. Protocol - 启动服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/protocol/start"
+```
+
+#### 140. Protocol - 发送编码消息
+
+```bash
+# 发送 greeting 消息
+curl -s -X POST "http://localhost:8080/api/v1/netty/protocol/send?type=greeting&content=Hello%20Netty%20Protocol"
+
+# 发送 order 消息
+curl -s -X POST "http://localhost:8080/api/v1/netty/protocol/send?type=order&content=ORDER20260530001"
+```
+
+**说明**: 消息经过 `CustomProtocolEncoder`（写入4字节长度 + JSON字节）→ TCP 发送 → 服务端 `LengthFieldBasedFrameDecoder` 解码 → `CustomProtocolDecoder` 反序列化为 Java 对象。
+
+#### 141. Protocol - 停止服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/protocol/stop"
+```
+
+## HTTP 服务器
+
+> 演示 Netty 作为 HTTP 容器的能力。使用 `HttpServerCodec` + `HttpObjectAggregator` 处理 HTTP 请求。
+
+#### 142. HTTP - 启动服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/http/start"
+```
+
+#### 143. HTTP - 直接访问 Netty HTTP 服务器
+
+```bash
+# 启动后直接用 curl 访问 9001 端口
+curl -s -X GET "http://localhost:9001/api/hello"
+curl -s -X POST "http://localhost:9001/api/data" -H "Content-Type: application/json" -d '{"key":"value"}'
+```
+
+**响应示例**:
+```json
+{"method":"GET","uri":"/api/hello","body":"","from":"netty-http"}
+```
+
+#### 144. HTTP - 停止服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/http/stop"
+```
+
+## WebSocket 全双工通信
+
+> 演示 WebSocket 握手、全双工通信和广播推送。使用 `WebSocketServerProtocolHandler` 处理 WebSocket 升级握手。
+
+#### 145. WebSocket - 启动服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/ws/start"
+```
+
+#### 146. WebSocket - 客户端连接测试
+
+```bash
+# 安装 wscat（如未安装）
+# npm install -g wscat
+
+# 连接 WebSocket 服务器（新开终端执行）
+wscat -c ws://127.0.0.1:9002/ws
+
+# 连接后发送消息
+# > hello
+# 服务端回复: < SERVER: hello
+```
+
+**说明**: WebSocket 路径为 `/ws`，连接后服务端自动回复，也可通过 REST 接口广播消息。
+
+#### 147. WebSocket - 广播消息
+
+```bash
+# 向所有 WebSocket 客户端广播消息
+curl -s -X POST "http://localhost:8080/api/v1/netty/ws/broadcast?message=%E5%A4%A7%E5%AE%B6%E5%A5%BD%EF%BC%8C%E8%BF%99%E6%98%AF%E4%B8%80%E6%9D%A1%E5%B9%BF%E6%92%AD%E6%B6%88%E6%81%AF"
+```
+
+#### 148. WebSocket - 查看在线客户端数
+
+```bash
+curl -s -X GET "http://localhost:8080/api/v1/netty/ws/clients"
+```
+
+#### 149. WebSocket - 停止服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/ws/stop"
+```
+
+## 心跳检测
+
+> 演示 Netty 空闲连接检测和自动清理。使用 `IdleStateHandler` 检测 5 秒无读事件则主动关闭连接，避免僵尸连接占用资源。
+
+#### 150. Heartbeat - 启动心跳服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/heartbeat/start"
+```
+
+#### 151. Heartbeat - 测试空闲超时
+
+```bash
+# 用 TCP 连接模拟客户端（新开终端），5 秒不发送数据会被服务端主动关闭
+# nc 127.0.0.1 9003
+# 观察应用日志: "Heartbeat timeout, closing client: /127.0.0.1:xxxxx"
+```
+
+**说明**: 服务端配置 `IdleStateHandler(5, 0, 0)`，5 秒无读事件触发 `IdleStateEvent`，`ChannelDuplexHandler` 捕获后主动关闭连接。可观察到服务端日志输出心跳超时信息。
+
+#### 152. Heartbeat - 停止服务器
+
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/netty/heartbeat/stop"
+```
+
+---
+
 **文档生成时间**: 2026 年 5 月 25 日
