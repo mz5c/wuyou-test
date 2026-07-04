@@ -1109,65 +1109,12 @@ curl -X POST "http://localhost:8080/api/v1/mq/send-transaction?body=order_10005"
 
 ---
 
-## Seata 分布式事务接口 (Seata Distributed Transaction API)
-
-### 48. AT 模式下单
-
-```bash
-curl -X POST "http://localhost:8080/api/v1/seata/at/order?userId=1&productId=1&quantity=1"
-```
-
-**说明**: AT 模式（自动补偿），使用 `@GlobalTransactional`。框架自动生成 UNDO LOG，业务无需感知。当分布式事务中任意一步失败时，自动回滚所有分支事务。
-
-**前置条件**: 启动 Seata Server (`seata-server.sh -p 8091`)，数据库已创建 `undo_log` 表。
-
----
-
-### 49. TCC 模式转账
-
-```bash
-curl -X POST "http://localhost:8080/api/v1/seata/tcc/transfer?fromUserId=1&toUserId=2&amount=100"
-```
-
-**说明**: TCC 模式（手动补偿），使用 `@LocalTCC` + `@TwoPhaseBusinessAction`。分为三个阶段：
-- **Try**: 冻结转出方资金
-- **Confirm**: 扣减冻结资金，增加转入方余额
-- **Cancel**: 解冻转出方资金
-
-**前置条件**: 启动 Seata Server。
-
----
-
-### 50. Saga 模式下单
-
-```bash
-curl -X POST "http://localhost:8080/api/v1/seata/saga/order?userId=1&productId=1&quantity=1"
-```
-
-**说明**: Saga 模式（状态机编排），使用 Seata `StateMachineEngine`。通过 `order-fulfillment-saga.json` 状态机定义四步流程：CreateOrder → DeductStock → DeductBalance → Notify。每步有对应的补偿操作，异常时按反向顺序执行补偿。
-
-**前置条件**: 启动 Seata Server。
-
----
-
-### 51. XA 模式下单
-
-```bash
-curl -X POST "http://localhost:8080/api/v1/seata/xa/order?userId=1&productId=1&quantity=1"
-```
-
-**说明**: XA 模式（数据库原生事务），使用 `data-source-proxy-mode: XA`。基于数据库的 XA 协议实现，事务隔离性最强，但性能相对较低。
-
-**前置条件**: 启动 Seata Server，配置文件中已设置 `seata.enableAutoDataSourceProxy=true`。
-
----
-
 ## 数据库约束说明（补充）
 
 | 表名 | 约束类型 | 字段 | 约束名 |
 |------|----------|------|--------|
 | `idempotent_record` | UNIQUE KEY | `biz_type`, `biz_id` | `uk_biz_type_biz_id` |
-| `seata_account` | INDEX | `user_id` | `idx_user_id` |
+
 
 ---
 
@@ -1183,7 +1130,6 @@ curl -X POST "http://localhost:8080/api/v1/seata/xa/order?userId=1&productId=1&q
 | 分布式ID | Redis（自增 ID） | 雪花算法无需额外依赖 |
 | Spring Retry | 无 | Spring AOP 内置 |
 | RocketMQ | RocketMQ Broker（127.0.0.1:9876） | 需启动 NameServer 和 Broker |
-| Seata | Seata Server（127.0.0.1:8091） | 四种模式均需 Seata Server |
 
 ---
 

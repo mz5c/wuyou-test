@@ -1,6 +1,6 @@
 # 本地中间件部署指南
 
-only-test 模块依赖的中间件：RocketMQ、Seata Server。本文档说明如何快速在本地部署这些服务。
+only-test 模块依赖的中间件：RocketMQ。本文档说明如何快速在本地部署这些服务。
 
 ---
 
@@ -168,73 +168,13 @@ mq:
     enabled: true   # 启用消费者（需先启动 RocketMQ）
 ```
 
----
-
-## Seata Server 1.6.1
-
-### 1. 下载
-
-```bash
-wget https://github.com/seata/seata/releases/download/v1.6.1/seata-server-1.6.1.tar.gz
-tar -xzf seata-server-1.6.1.tar.gz
-cd seata
-```
-
-### 2. 修改配置
-
-Seata Server 默认使用 file 注册中心和配置中心，无需额外配置即可启动。
-
-如果需要使用数据库存储事务日志，编辑 `conf/application.yml`，配置数据库连接。
-
-### 3. 启动
-
-```bash
-# 默认端口 8091
-bash bin/seata-server.sh
-```
-
-查看日志：
-
-```bash
-tail -f logs/start.out
-```
-
-### 4. 停止
-
-```bash
-# Ctrl+C 或 kill 进程
-```
-
-### 5. 应用配置
-
-```yaml
-seata:
-  enabled: true
-  application-id: only-test
-  tx-service-group: default_tx_group
-  data-source-proxy-mode: AT
-  service:
-    vgroup-mapping:
-      default_tx_group: default
-    grouplist:
-      default: 127.0.0.1:8091
-  registry:
-    type: file
-```
-
-### 6. Web 管理页面
-
-访问 http://localhost:7091
-
-默认登录：`seata` / `seata`
 
 ---
-
 ## 快速启动检查清单
 
 ### 启动顺序
 
-1. MySQL → 2. Redis → 3. RocketMQ（NameServer → Broker） → 4. Seata Server → 5. 应用
+1. MySQL → 2. Redis → 3. RocketMQ（NameServer → Broker） → 4. 应用
 
 ### RocketMQ
 
@@ -244,12 +184,6 @@ seata:
 | Broker | 10911 | `lsof -i :10911` |
 | Dashboard | 8082 | http://localhost:8082 |
 
-### Seata
-
-| 组件 | 端口 | 验证方式 |
-|------|------|---------|
-| Server | 8091 | `lsof -i :8091` |
-| Console | 7091 | http://localhost:7091 |
 
 ### 启用消费端
 

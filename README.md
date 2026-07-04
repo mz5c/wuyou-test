@@ -15,7 +15,7 @@
 | 搜索引擎 | Elasticsearch 8.x（co.elastic.clients 新版客户端） |
 | LLM 客户端 | RestTemplate (OpenAI 兼容接口) |
 | 消息队列 | RocketMQ |
-| 分布式事务 | Seata AT / TCC / Saga / XA |
+
 | 限流 | Guava RateLimiter（本地）+ Redis 滑动窗口（分布式） |
 
 ## 模块说明
@@ -48,9 +48,8 @@
 | 18 | 分布式 ID | 雪花算法 + Redis INCR |
 | 19 | Spring Retry | @Retryable + @Recover 重试与降级 |
 | 20 | RocketMQ | 同步/异步/单向/顺序/事务消息 |
-| 21 | Seata | AT / TCC / Saga / XA 四种分布式事务模式 |
-| 22 | 本地缓存 | Guava Cache + Caffeine（多种过期策略 + 淘汰监听） |
-| 23 | Elasticsearch | HTTP API 直调 + 新版 Java 客户端两种方式 |
+| 21 | 本地缓存 | Guava Cache + Caffeine（多种过期策略 + 淘汰监听） |
+| 22 | Elasticsearch | HTTP API 直调 + 新版 Java 客户端两种方式 |
 
 ### llm-utils
 LLM API Spring Boot Starter，封装 OpenAI 兼容接口的同步和流式调用。
@@ -137,7 +136,7 @@ wuyou-test/
 │       ├── mq/           # RocketMQ 消息
 │       ├── ratelimit/    # 限流
 │       ├── retry/        # Spring Retry
-│       ├── seata/        # Seata 分布式事务
+
 │       └── elasticsearch/# ES 操作（HTTP API + 新版 Java 客户端）
 └── llm-utils/
     └── src/main/java/com/wuyou/llmutils/
